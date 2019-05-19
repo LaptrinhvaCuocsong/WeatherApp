@@ -150,6 +150,17 @@
                                     <constraint firstAttribute="width" constant="58" id="WGZ-58-qyE"/>
                                 </constraints>
                             </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JNd-8t-Jmh">
+                                <rect key="frame" x="0.0" y="762" width="414" height="40"/>
+                                <color key="backgroundColor" red="0.99999600649999998" green="1" blue="1" alpha="0.29757063360000002" colorSpace="custom" customColorSpace="sRGB"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="23"/>
+                                <state key="normal" title="Get Weather">
+                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <connections>
+                                    <action selector="getWeatherBtnPressed:" destination="P1Y-dL-zMM" eventType="touchUpInside" id="rWc-3k-OtP"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -158,16 +169,20 @@
                             <constraint firstAttribute="bottom" secondItem="Cnc-Wx-RnM" secondAttribute="bottom" id="Fft-v7-pz5"/>
                             <constraint firstItem="8AW-pp-edz" firstAttribute="centerX" secondItem="Cnc-Wx-RnM" secondAttribute="centerX" id="G5B-xp-BaW"/>
                             <constraint firstAttribute="trailing" secondItem="A8i-WZ-hvQ" secondAttribute="trailing" id="Hgd-ae-HKm"/>
+                            <constraint firstItem="JNd-8t-Jmh" firstAttribute="leading" secondItem="R49-jx-b8b" secondAttribute="leading" id="ZMM-Gh-saq"/>
                             <constraint firstItem="Cnc-Wx-RnM" firstAttribute="top" secondItem="R49-jx-b8b" secondAttribute="top" id="ZU1-vu-Mkh"/>
+                            <constraint firstAttribute="trailing" secondItem="JNd-8t-Jmh" secondAttribute="trailing" id="bfV-Lu-xyf"/>
                             <constraint firstItem="8AW-pp-edz" firstAttribute="centerY" secondItem="Cnc-Wx-RnM" secondAttribute="centerY" constant="-20" id="gBp-9x-gR0"/>
                             <constraint firstItem="Cnc-Wx-RnM" firstAttribute="leading" secondItem="R49-jx-b8b" secondAttribute="leading" id="hYr-fk-iDg"/>
                             <constraint firstAttribute="trailing" secondItem="Cnc-Wx-RnM" secondAttribute="trailing" id="lFe-ZP-jbS"/>
                             <constraint firstItem="gDk-eH-nyp" firstAttribute="top" secondItem="A8i-WZ-hvQ" secondAttribute="bottom" id="pHg-50-9cS"/>
+                            <constraint firstItem="A8i-WZ-hvQ" firstAttribute="top" secondItem="JNd-8t-Jmh" secondAttribute="bottom" constant="10" id="rdF-2i-bgA"/>
                             <constraint firstItem="gXW-2P-8ae" firstAttribute="top" secondItem="8SU-81-qPl" secondAttribute="bottom" constant="8" id="xmc-Vo-u0P"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="addressLabel" destination="A8i-WZ-hvQ" id="6NP-Xo-3Wh"/>
+                        <outlet property="getWeatherBtn" destination="JNd-8t-Jmh" id="Wnf-yC-IPj"/>
                         <outlet property="mapView" destination="Cnc-Wx-RnM" id="ia7-Zd-ftI"/>
                     </connections>
                 </viewController>

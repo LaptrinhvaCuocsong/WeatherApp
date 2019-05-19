@@ -16,6 +16,8 @@ class WeatherViewController: UIViewController {
     let clGeocoder = CLGeocoder()
     var locationServiceEnable = false
     var theFirstOpenWeatherVC = true
+    var theFirstPresentChangeCity = true
+    var currentLocation: CLLocation?
     
     //Pre-linked IBOutlets
     @IBOutlet weak var weatherIcon: UIImageView!
@@ -42,7 +44,7 @@ class WeatherViewController: UIViewController {
     
     func checkLocationService() -> Bool {
         if CLLocationManager.locationServicesEnabled() {
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
             return true
         }
         return false
@@ -101,19 +103,59 @@ class WeatherViewController: UIViewController {
         }
     }
     
-    //MARK: - Change City Delegate methods
+    //MARK: - Update UI
     /***************************************************************/
     
+    func updateCityLabel(_ addressDataModel: AddressDataModel?) {
+        if addressDataModel != nil {
+            var a = [String]()
+            let city = (addressDataModel!.city != nil) ? addressDataModel!.city! : ""
+            if city != "" {
+                a.append(city)
+            }
+            let country = (addressDataModel!.country != nil) ? addressDataModel!.country! : ""
+            if country != "" {
+                a.append(country)
+            }
+            cityLabel.text = a.joined(separator: ", ")
+        }
+    }
     
-    //Write the userEnteredANewCityName Delegate method here:
-    
-
+    func updateTempLBAndWeatherIcon(_ weatherDataModel: WeatherDataModel?) {
+        if weatherDataModel != nil {
+            temperatureLabel.text = (weatherDataModel!.temperature != nil) ? "\(Int(weatherDataModel!.convertKelvinToCelsius(weatherDataModel!.temperature!)))ºC" : "..."
+            weatherIcon.image = UIImage.init(named: weatherDataModel?.iconName ?? "dunno")
+        }
+    }
     
     //Write the PrepareForSegue Method here
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "changeCityName" {
+            let vc = segue.destination as! ChangeCityViewController
+            vc.delegate = self
+            vc.location = currentLocation
+        }
+    }
     
+}
+
+extension WeatherViewController: ChangeCityDelegate {
     
+    func updateWeatherForLocation(_ location: CLLocation) {
+        currentLocation = location
+        weak var weakSelf = self
+        geocoding(location) { addressDataModel in
+            weakSelf?.updateCityLabel(addressDataModel)
+        }
+        WeatherService.share.getWeatherData(location.coordinate.latitude, location.coordinate.longitude) { weatherDataModel in
+            weakSelf?.updateTempLBAndWeatherIcon(weatherDataModel)
+        }
+    }
     
+    func closeViewController() {
+        dismiss(animated: true, completion: nil)
+    }
     
 }
 
@@ -125,26 +167,13 @@ extension WeatherViewController: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let userLocation = locations.last {
+            currentLocation = userLocation
             weak var weakSelf = self
-            self.geocoding(userLocation) { addressDataModel in
-                if addressDataModel != nil {
-                    var a = [String]()
-                    let city = (addressDataModel!.city != nil) ? addressDataModel!.city! : ""
-                    if city != "" {
-                        a.append(city)
-                    }
-                    let country = (addressDataModel!.country != nil) ? addressDataModel!.country! : ""
-                    if country != "" {
-                        a.append(country)
-                    }
-                    weakSelf?.cityLabel.text = a.joined(separator: ", ")
-                }
+            geocoding(userLocation) { addressDataModel in
+                weakSelf?.updateCityLabel(addressDataModel)
             }
             WeatherService.share.getWeatherData(userLocation.coordinate.latitude, userLocation.coordinate.longitude) { weatherDataModel in
-                if weatherDataModel != nil {
-                    weakSelf?.temperatureLabel.text = (weatherDataModel!.temperature != nil) ? "\(Int(weatherDataModel!.convertKelvinToCelsius(weatherDataModel!.temperature!)))ºC" : "..."
-                    weakSelf?.weatherIcon.image = UIImage.init(named: weatherDataModel?.iconName ?? "dunno")
-                }
+                weakSelf?.updateTempLBAndWeatherIcon(weatherDataModel)
             }
         }
         locationManager.stopUpdatingLocation()

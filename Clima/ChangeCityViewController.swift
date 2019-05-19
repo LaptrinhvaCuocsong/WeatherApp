@@ -12,70 +12,79 @@ import CoreLocation
 
 
 //Write the protocol declaration here:
-
+protocol ChangeCityDelegate: class {
+    func updateWeatherForLocation(_ location: CLLocation)
+    func closeViewController()
+}
 
 
 class ChangeCityViewController: UIViewController {
     
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var addressLabel: UIButton!
+    @IBOutlet weak var getWeatherBtn: UIButton!
     
-    let locationManager = CLLocationManager()
-    var locationServiceEnable = false
     let clGeocoder = CLGeocoder()
     let showGetWeatherBtn = true
+    var location: CLLocation?
+    var previusLocation: CLLocation?
+    
+    //Declare the delegate variable here:
+    weak var delegate: ChangeCityDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         mapView.delegate = self
-        locationServiceEnable = checkLocationService()
+        getWeatherBtn.isHidden = true
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        checkAuthorizationStatus()
+        if let l = location {
+            let region = MKCoordinateRegionMakeWithDistance(l.coordinate, 100000.0, 100000.0)
+            mapView.setRegion(region, animated: true)
+        }
     }
     
     //MARK: - IBAction
     /***************************************************************/
     
     @IBAction func addressLabelPressed(_ sender: Any) {
-        
-    }
-    
-    
-    //MARK: - Setting Location Service
-    /***************************************************************/
-    
-    func checkLocationService() -> Bool {
-        if CLLocationManager.locationServicesEnabled() {
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest
-            return true
-        }
-        return false
-    }
-    
-    func checkAuthorizationStatus() {
-        if locationServiceEnable {
-            switch CLLocationManager.authorizationStatus() {
-            case .authorizedWhenInUse:
-                fallthrough
-            case .authorizedAlways:
-                startUpdateLocation()
-                break
-            default:
-                break
+        if getWeatherBtn.isHidden {
+            getWeatherBtn.isHidden = false
+            let frame = getWeatherBtn.frame
+            let frameOfAddressLB = addressLabel.frame
+            getWeatherBtn.frame = frameOfAddressLB
+            weak var weakSelf = self
+            UIView.animate(withDuration: 0.2) {
+                weakSelf?.getWeatherBtn.frame = frame
             }
         }
+        else {
+            getWeatherBtn.isHidden = true
+        }
     }
     
-    func startUpdateLocation() {
-        locationManager.delegate = self
-        locationManager.startUpdatingLocation()
+    @IBAction func getWeatherBtnPressed(_ sender: Any) {
+        delegate?.updateWeatherForLocation(CLLocation(latitude: mapView.centerCoordinate.latitude, longitude: mapView.centerCoordinate.longitude))
+        delegate?.closeViewController()
     }
+    
+    //This is the IBAction that gets called when the user taps the back button. It dismisses the ChangeCityViewController.
+    @IBAction func backButtonPressed(_ sender: AnyObject) {
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    //MARK: - CLGeocoder
+    /***************************************************************/
     
     func geocoding(_ location: CLLocation, _ completion: (((AddressDataModel)?) -> Void)?) {
         if !clGeocoder.isGeocoding {
+            if let pl = previusLocation {
+                if location.distance(from: pl) < 100.0 {
+                    return
+                }
+            }
             clGeocoder.reverseGeocodeLocation(location) { clPlacemarks, error in
                 if error == nil {
                     if let placemark = clPlacemarks?.last {
@@ -89,14 +98,6 @@ class ChangeCityViewController: UIViewController {
                 }
             }
         }
-    }
-    
-    //Declare the delegate variable here:
-    
-
-    //This is the IBAction that gets called when the user taps the back button. It dismisses the ChangeCityViewController.
-    @IBAction func backButtonPressed(_ sender: AnyObject) {
-        self.dismiss(animated: true, completion: nil)
     }
     
 }
@@ -119,19 +120,6 @@ extension ChangeCityViewController: MKMapViewDelegate {
             }
             weakSelf?.addressLabel.setTitle(a.joined(separator: ", "), for: .normal)
         }
-    }
-    
-}
-
-extension ChangeCityViewController: CLLocationManagerDelegate {
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let userLocation = locations.last {
-            let region = MKCoordinateRegionMakeWithDistance(userLocation.coordinate, 1000000.0, 1000000.0)
-            mapView.setRegion(region, animated: true)
-        }
-        locationManager.stopUpdatingLocation()
-        locationManager.delegate = nil
     }
     
 }
